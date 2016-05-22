@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+<body>
+
+
+<div id="desk">
+    <div id="left">
+        <div id="left-top"></div>
+        <div id="left-middle">
+            <div id="cards">
+                <span id="card">
+                    <img id="cards-deck" src="image/deck.jpg" alt="牌堆">
+                </span>
+            </div>
+        </div>
+        <div id="left-bottom"></div>
+    </div>
+    <div id="center">
+        <div class="player-block" id="me">
+            <h3 class="readyState" id="myState">ready</h3>
+            <h3 class="role" id="myRole">role:unknown</h3>
+            <h3 class="player-name">name:me</h3>
+            <div class="card-block" id="myDisplay"></div>
+            <div class="button-ready" id="myReadyButton">
+                <button class="ready" id="readyButton">ready</button>
+            </div>
+            <div class="button-row" id="myButtonRow">
+                <button class="hit" id="hitButton">hit</button>
+                <button class="stand" id="standButton">stand</button>
+            </div>
+            <div class="final-state" id="myFinal"></div>
+        </div>
+    </div>
+    <div id="right"></div>
+</div>
+
+
+<script language=javascript src="./js/clientController.js"></script>
+<script language=javascript src='./js/member.js'></script>
+<script language=javascript src='./js/gameRoom.js'></script>
+<script language=javascript src='./js/card.js'></script>
+
+<script>
+
+    var serverAddress='ws:'+window.location.href.slice(window.location.protocol.length).split(":")[0]+':9090';
+    var controller=new ClientController(serverAddress);
+
+    controller.on('member_in',function(message){
+        var newPlayer=document.createElement("div");
+        newPlayer.className="player-block";
+        newPlayer.id=message.id;
+
+        var newReadyState=document.createElement("h3");
+        newReadyState.className='readyState';
+        newReadyState.innerText="ready";
+        newReadyState.id="ready"+message.id;
+
+        var newRole=document.createElement("h3");
+        newRole.className="role";
+        newRole.innerText="role:"+message.role;
+        newRole.id="role"+message.id;
+
+        var newName=document.createElement("h3");
+        newName.className='player-name';
+        newName.innerText="name:"+message.name;
+
+        var newDisplay=document.createElement("div");
+        newDisplay.className="card-block";
+        newDisplay.id="display"+message.id;
+
+        var newFinal=document.createElement("div");
+        newFinal.className="final-state";
+        newFinal.id="final"+message.id;
+
+        newPlayer.appendChild(newReadyState);
+        newPlayer.appendChild(newRole);
+        newPlayer.appendChild(newName);
+        newPlayer.appendChild(newDisplay);
+        newPlayer.appendChild(newFinal);
+
+        document.getElementById('center').appendChild(newPlayer);
+    });
+
+    controller.on('member_out',function(message){
+        var outNode=document.getElementById(message.id);
+        var parent=document.getElementById("center");
+        parent.removeChild(outNode);
+    });
+
+    controller.on('member_ready',function(message){
+        //document.getElementById(message.id).childNodes[1].style.display='inline';
+        var a=document.getElementById('ready'+message.id);
+        console.log(a);
+        document.getElementById('ready'+message.id).style.display='inline';
+    });
+
+    controller.on('member_unready',function(message){
+        document.getElementById('ready'+message.id).style.display='none';
+    });
+
+    controller.on('ack_prepare',function(message){
+        document.getElementById("me").id=message.id;
+        document.getElementById("myRole").id="role"+message.id;
+        document.getElementById("readyButton").style.display="inline";
+    });
+
+    controller.on('start',function(message){
+        console.log("game start");
+    });
+
+    controller.on('reject_in',function(message){
+        console.log("the game is carry on,wait for next turn");
+    });
+
+    controller.on('role_set',function(){
+        controller.room.members.forEach(function(member){
+            var id="role"+member.id;
+            console.log(document.getElementById(id));
+            document.getElementById(id).innerText="role:"+member.role;
+        });
+        console.log("set roles successfully");
+    });
+
+    controller.on('send_card',function(card){
+        var newCard=document.createElement("div");
+        newCard.className="card-on-desk";
+        var newCardImg=document.createElement("img");
+        newCardImg.src="image/cards/"+card.color+card.number+".png";
+        newCard.appendChild(newCardImg);
+        document.getElementById("myDisplay").appendChild(newCard);
+    });
+
+    controller.on("member_receiveCard",function(message){
+        var newCard=document.createElement("div");
+        newCard.className="card-on-desk";
+        var newCardImg=document.createElement("img");
+        newCardImg.src="image/cards/"+message.card.color+message.card.number+".png";
+        newCard.appendChild(newCardImg);
+        document.getElementById("display"+message.id).appendChild(newCard);
+    });
+
+    controller.on("hitOrStand",function(){
+        document.getElementById("myButtonRow").style.display="inline";
+        document.getElementById(controller.id).style.border="3px solid blue";
+    });
+
+    controller.on("cancel_hitOrStand",function(){
+        document.getElementById("myButtonRow").style.display="none";
+        document.getElementById(controller.id).style.border="1px dashed #cccccc";
+    });
+
+    controller.on("others_hitOrStand",function(message){
+        document.getElementById(message.id).style.border="3px solid blue";
+    });
+
+    controller.on("cancel_othersHitOrStand",function(message){
+        document.getElementById(message.id).style.border="1px dashed #cccccc";
+    });
+
+    controller.on("final_state",function(mem){
+
+        var final=document.createElement('p');
+        final.innerText=mem.finalState;
+        document.getElementById("myFinal").appendChild(final);
+
+    });
+
+    controller.on("clean",function(){
+        controller.room.members.forEach(function(member){
+            if(member.id!=controller.id){
+                document.getElementById("ready"+member.id).style.display='none';
+                document.getElementById("role"+member.id).innerText="";
+                document.getElementById("display"+member.id).innerHTML='';
+            }
+        });
+        document.getElementById("readyButton").innerText="ready";
+        document.getElementById("readyButton").clickTimes++;
+        document.getElementById("myDisplay").innerHTML="";
+        document.getElementById("myState").style.display="none";
+        document.getElementById("role"+controller.id).innerText='';
+        document.getElementById("myFinal").innerHTML='';
+    });
+
+    var readyButton=document.getElementById("readyButton");
+    readyButton.clickTimes=0;
+    readyButton.onclick=function(){
+        readyButton.clickTimes++;
+        if(readyButton.clickTimes%2){
+            controller.socket.send(JSON.stringify({
+                "action":"ready",
+                "name":controller.name,
+                "id":controller.id
+            }));
+            controller.room.members[0].readyState=true;
+            controller.readyState=true;
+            document.getElementById("myState").style.display="inline";
+            document.getElementById("readyButton").innerText="cancel";
+        }else{
+            controller.socket.send(JSON.stringify({
+                "action":"unready",
+                "name":controller.name,
+                "id":controller.id
+            }));
+            controller.room.members[0].readyState=false;
+            controller.readyState=false;
+            document.getElementById("myState").style.display="none";
+            document.getElementById("readyButton").innerText="ready";
+        }
+    };
+
+    var hitButton=document.getElementById("hitButton");
+    hitButton.onclick=function(){
+        document.getElementById("myButtonRow").style.display="none";
+        controller.socket.send(JSON.stringify({
+            "action":"choose",
+            "id":controller.id,
+            "choose":"hit"
+        }));
+    };
+
+    var standButton=document.getElementById("standButton");
+    standButton.onclick=function(){
+        document.getElementById("myButtonRow").style.display="none";
+        controller.socket.send(JSON.stringify({
+            "action":"choose",
+            "id":controller.id,
+            "choose":"stand"
+        }));
+    };
+</script>
+</body>
+</html>

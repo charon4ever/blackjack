@@ -1,0 +1,106 @@
+
+*{  margin:0;
+    padding:0;
+}
+body {background-color:green}
+#desk{
+    border:3px double #cccccc;
+    width:1300px;
+    height:650px;
+    margin:10px auto;
+}
+#left{
+    display:block;
+    float:left;
+    width:150px;
+    height:650px;
+}
+#left-top{
+    height:200px
+}
+#left-middle{
+    height:250px;
+    display:table-cell;
+    vertical-align: middle;
+    text-align: center;
+    margin:auto
+}
+#left-bottom{
+    height:200px;
+}
+#center{
+    width:1000px;
+    height:650px;
+    float:left;
+    border-left: 1px solid #cccccc;
+    border-right:1px solid #cccccc;
+}
+#cards{
+    position:relative;
+    left:35px;
+    background-image:url(../image/deck.jpg);
+    margin:auto;
+    height:123px;
+    width:80px;
+}
+#card{
+    display:block;
+    position:relative;
+    margin:10px;
+    z-index:1;
+}
+#right{
+    float:left;
+    width:150px;
+    height:650px
+}
+.player-block{
+    float:left;
+    position:relative;
+    left:10px;
+    margin:5px 5px;
+    padding:5px 5px;
+    border:1px dashed #cccccc;
+    width:400px;
+    height:300px;
+}
+.player-name{
+    text-align:left;
+}
+.readyState{
+    display:none
+}
+.card-block{
+    text-align:center;
+    vertical-align:middle;
+    margin:auto;
+    width:350px;
+    height:150px;
+    border:1px dashed #cccccc
+}
+.button-ready{
+
+}
+.button-row{
+    margin:auto;
+    display: none;
+}
+.hit{
+    text-align: left;
+}
+.stand{
+    text-align: center;
+}
+.ready{
+    text-align: right;
+    display:none;
+}
+.final-state{
+
+}
+.card-on-desk{
+    width:80px;
+    height:130px;
+    margin:10px 3px;
+    float:left
+}
